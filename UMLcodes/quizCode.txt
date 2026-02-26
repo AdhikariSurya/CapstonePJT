@@ -1,0 +1,113 @@
+[DOES NOT WORK IN PLANTUML AT ALL]
+
+@startuml
+left to right direction
+
+skinparam backgroundColor #F8FAFC
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam NoteBackgroundColor #FFFBEB
+skinparam NoteBorderColor #F59E0B
+skinparam NoteFontSize 10
+skinparam swimlaneBorderColor #94A3B8
+skinparam swimlaneTitleFontSize 12
+skinparam swimlaneTitleFontStyle bold
+
+title <b><size:15>Dynamic Adaptive Quiz Module</size></b>\n<size:11>Single API Call Architecture  ·  Adaptive Difficulty Engine  ·  6 Interactive Question Types</size>
+
+|#DBEAFE|Teacher Setup|
+start
+#93C5FD:Configure Quiz Settings;
+note right
+  **Grade** (1–10)  •  **Subject** (8 options)  •  **Topic** (free text)
+  **Output Language** — English / Hindi
+  **No. of Questions** — 5 / 8 / 10 / 12 / 15
+  **Question Types** — optional filter (all mixed if none selected)
+  **Reference Content** — optional grounding text for Gemini
+end note
+#3B82F6:Tap "Start Quiz";
+
+|#FEF3C7|Gemini 2.5 Flash-Lite|
+#FDE68A:API Call — POST /api/quiz/generate;
+note right
+  **One single API call per quiz session**
+  No further AI calls made during quiz play
+  Model: gemini-2.5-flash-lite
+end note
+#FCD34D:Generate 25-Question Bank;
+note right
+  **5 questions per difficulty level (Levels 1 → 5)**
+  **6 question types distributed evenly:**
+  MCQ  ·  Fill in the Blank  ·  True / False
+  Match the Following  ·  Ordering  ·  Multi-Select MCQ
+end note
+#F59E0B:Return Structured JSON Response;
+
+|#D1FAE5|Adaptive Engine|
+#34D399:Parse + Validate JSON;
+#10B981:Initialise Quiz Session;
+note right
+  currentDifficulty  ←  3   (medium start)
+  usedIds  ←  { }
+  streak  ←  0   ·   consecutiveWrong  ←  0
+end note
+
+|#EDE9FE|Student|
+repeat
+  #A78BFA:View Question;
+  note right
+    Progress bar  ·  Streak indicator  ·  Question type badge
+    ——————————————————————————————
+    **MCQ**          → 4 tappable option cards
+    **True / False** → 2 large tappable buttons
+    **Fill Blank**   → text input field
+    **Multi-Select** → checkbox-style option cards
+    **Match**        → tap-to-connect two columns (A → B)
+    **Order**        → drag-and-drop reorder list
+  end note
+  #7C3AED:Submit Answer;
+
+  |#D1FAE5|Adaptive Engine|
+  if (Answer Correct?) then (Yes)
+    #6EE7B7:Show green feedback\n+ explanation;
+    #34D399:streak++\ndifficulty = min(5, D + 1);
+  else (No)
+    #FECACA:Show red feedback\n+ correct answer + explanation;
+    if (2+ Consecutive Wrong?) then (Yes)
+      #EF4444:Confidence Reset\ndifficulty = max(1, D - 2);
+    else (No)
+      #F87171:difficulty = max(1, D - 1);
+    endif
+    #FCA5A5:streak = 0\nconsecutiveWrong++;
+  endif
+  #6EE7B7:Record StudentAnswer object\n(questionId, type, difficulty, isCorrect, explanation);
+  #10B981:Mark question ID as used\nSelect next question at target difficulty\n(fallback to nearest available level if needed);
+
+  |#EDE9FE|Student|
+  #A78BFA:Tap "Next Question";
+
+repeat while (Questions remaining?) is (Yes)
+
+|#FFE4E6|Results Screen|
+#FDA4AF:Display Results Summary;
+note right
+  **Raw Score**               — Correct answers / Total questions
+  **Accuracy %**              — Percentage of correct answers
+  **Highest Difficulty**      — Peak difficulty level reached
+  **Adaptive Score**          — Σ (difficulty × 2) per correct answer
+  **Max Possible Score**      — numQuestions × 10
+  ——————————————————————————————
+  Per-question breakdown (expandable):
+  Student answer  ·  Correct answer  ·  Explanation
+end note
+if (Player Action?) then (Try Again)
+  #FECDD3:Reset adaptive state\nReuse same 25-question bank;
+else (New Quiz)
+  #FCA5A5:Return to Teacher Setup Screen;
+endif
+
+stop
+
+@enduml

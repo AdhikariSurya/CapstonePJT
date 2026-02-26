@@ -11,6 +11,52 @@ interface QuizRequestBody {
   questionTypes?: string[];
 }
 
+const ALLOWED_QUESTION_TYPES = [
+  "mcq",
+  "fill_blank",
+  "true_false",
+  "match",
+  "order",
+  "multi_select",
+] as const;
+
+type AllowedQuestionType = (typeof ALLOWED_QUESTION_TYPES)[number];
+type NormalizedQuestion = Record<string, unknown> & {
+  id: string;
+  type: AllowedQuestionType;
+};
+
+function canonicalQuestionType(raw: string): AllowedQuestionType | null {
+  const normalized = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[ -]+/g, "_")
+    .replace(/\//g, "_")
+    .replace(/[^a-z_]/g, "");
+
+  const aliasMap: Record<string, AllowedQuestionType> = {
+    mcq: "mcq",
+    multiple_choice: "mcq",
+    multiplechoice: "mcq",
+    fill_blank: "fill_blank",
+    fill_in_blank: "fill_blank",
+    fillintheblank: "fill_blank",
+    true_false: "true_false",
+    truefalse: "true_false",
+    match: "match",
+    match_the_following: "match",
+    matchthefollowing: "match",
+    order: "order",
+    ordering: "order",
+    sequence: "order",
+    multi_select: "multi_select",
+    multiselect: "multi_select",
+    multi_choice: "multi_select",
+  };
+
+  return aliasMap[normalized] ?? null;
+}
+
 function stripCodeFence(raw: string): string {
   return raw
     .trim()
@@ -104,6 +150,9 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as QuizRequestBody;
     const { grade, subject, topic, outputLanguage, numQuestions, details, questionTypes } = body;
+    const normalizedRequestedTypes = (questionTypes ?? [])
+      .map(canonicalQuestionType)
+      .filter((type): type is AllowedQuestionType => Boolean(type));
 
     if (!grade || !subject || !topic || !outputLanguage || !numQuestions) {
       return NextResponse.json(
@@ -127,7 +176,7 @@ export async function POST(request: NextRequest) {
       outputLanguage,
       numQuestions,
       details,
-      questionTypes,
+      questionTypes: normalizedRequestedTypes,
     });
     const result = await model.generateContent(prompt);
     const raw = result.response.text();
@@ -150,30 +199,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (questionTypes && questionTypes.length > 0) {
-      const requestedTypes = new Set(questionTypes);
-      const hasUnexpectedType = parsed.questions.some((question) => {
-        if (!isObject(question) || typeof question.type !== "string") return true;
-        return !requestedTypes.has(question.type);
-      });
-      if (hasUnexpectedType) {
-        return NextResponse.json(
-          { error: "Model returned unrequested question types. Please regenerate." },
-          { status: 502 }
-        );
-      }
+    const normalizedQuestions = parsed.questions
+      .map((question, index) => {
+        if (!isObject(question) || typeof question.type !== "string") return null;
+        const canonicalType = canonicalQuestionType(question.type);
+        if (!canonicalType) return null;
+        return {
+          ...question,
+          id: typeof question.id === "string" ? question.id : `q${index + 1}`,
+          type: canonicalType,
+        } satisfies NormalizedQuestion;
+      })
+      .filter((question): question is NormalizedQuestion => question !== null);
+
+    if (normalizedQuestions.length === 0) {
+      return NextResponse.json(
+        { error: "Model returned unsupported question types. Please regenerate." },
+        { status: 502 }
+      );
     }
+
+    // If teacher selected specific types, prefer those questions.
+    // If model under-produces them, fallback to all normalized questions to avoid blocking quiz generation.
+    const selectedTypeSet = new Set(normalizedRequestedTypes);
+    const filteredQuestions =
+      selectedTypeSet.size > 0
+        ? normalizedQuestions.filter((question) =>
+            selectedTypeSet.has(question.type as AllowedQuestionType)
+          )
+        : normalizedQuestions;
+    const finalQuestions = filteredQuestions.length > 0 ? filteredQuestions : normalizedQuestions;
 
     return NextResponse.json({
       quiz_title: typeof parsed.quiz_title === "string" ? parsed.quiz_title : `${topic} Quiz`,
-      questions: parsed.questions,
+      questions: finalQuestions,
       metadata: {
         grade,
         subject,
         topic,
         numQuestions,
         outputLanguage,
-        selectedQuestionTypes: questionTypes && questionTypes.length > 0 ? questionTypes : undefined,
+        selectedQuestionTypes:
+          normalizedRequestedTypes.length > 0 ? normalizedRequestedTypes : undefined,
         generatedAt: new Date().toISOString(),
       },
     });
