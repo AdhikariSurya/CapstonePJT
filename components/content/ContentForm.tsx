@@ -2,6 +2,9 @@
 
 import { PillSelector } from "../worksheet/PillSelector";
 import { Loader2, Sparkles, Lock, Pencil } from "lucide-react";
+import { ContextFileUpload } from "../shared/ContextFileUpload";
+import { VoiceInputAssist } from "../shared/VoiceInputAssist";
+import type { UploadedContextFile } from "@/lib/contextFiles";
 
 const LANGUAGES = [
   { id: "english", label: "English" },
@@ -22,6 +25,7 @@ export interface ContentFormData {
   language: string;
   contentType: string;
   description: string;
+  contextFiles: UploadedContextFile[];
 }
 
 interface ContentFormProps {
@@ -41,6 +45,9 @@ export function ContentForm({
   loading,
   locked,
 }: ContentFormProps) {
+  const appendText = (current: string, incoming: string) =>
+    current.trim() ? `${current.trim()} ${incoming}` : incoming;
+
   const isValid =
     formData.language && formData.contentType && formData.description.trim();
 
@@ -59,6 +66,13 @@ export function ContentForm({
   const placeholder = formData.contentType
     ? placeholderMap[formData.contentType]
     : "Describe what you'd like the content to be about…";
+
+  const speechLangMap: Record<string, string> = {
+    english: "en-IN",
+    hindi: "hi-IN",
+    bengali: "bn-IN",
+  };
+  const speechLang = speechLangMap[formData.language] ?? "en-IN";
 
   return (
     <div className="space-y-4">
@@ -123,7 +137,19 @@ export function ContentForm({
               rows={4}
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 resize-none transition-colors"
             />
+            <VoiceInputAssist
+              language={speechLang}
+              disabled={locked}
+              onApply={(spokenText) =>
+                onChange({ description: appendText(formData.description, spokenText) })
+              }
+            />
           </div>
+
+          <ContextFileUpload
+            files={formData.contextFiles}
+            onChange={(contextFiles) => onChange({ contextFiles })}
+          />
         </div>
       </div>
 

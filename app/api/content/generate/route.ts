@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { buildGeminiInput, sanitizeContextFiles } from "@/lib/contextFiles";
 
 type ContentType = "story" | "poem" | "play" | "essay" | "article" | "biography";
 type Language = "english" | "hindi" | "bengali";
@@ -75,7 +76,7 @@ Now write the ${contentType}:`;
 
 export async function POST(request: NextRequest) {
   try {
-    const { language, contentType, description } = await request.json();
+    const { language, contentType, description, contextFiles } = await request.json();
 
     if (!language || !contentType || !description?.trim()) {
       return NextResponse.json(
@@ -92,8 +93,9 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
+    const safeFiles = sanitizeContextFiles(contextFiles);
     const prompt = buildPrompt(language as Language, contentType as ContentType, description);
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(buildGeminiInput(prompt, safeFiles));
     const text = result.response.text().trim();
 
     return NextResponse.json({

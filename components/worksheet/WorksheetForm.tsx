@@ -4,6 +4,10 @@ import { GradeSelector } from "./GradeSelector";
 import { PillSelector } from "./PillSelector";
 import { WorksheetTypeSelector } from "./WorksheetTypeSelector";
 import { Loader2, Sparkles, Lock, Pencil } from "lucide-react";
+import { applySubjectLanguageRule, getSubjectLanguageRule } from "@/lib/languageSubject";
+import { ContextFileUpload } from "../shared/ContextFileUpload";
+import { VoiceInputAssist } from "../shared/VoiceInputAssist";
+import type { UploadedContextFile } from "@/lib/contextFiles";
 
 const SUBJECTS = [
   { id: "English", label: "English" },
@@ -29,6 +33,7 @@ export interface WorksheetFormData {
   questionCounts: Record<string, number>;
   outputLanguage: string;
   details: string;
+  contextFiles: UploadedContextFile[];
 }
 
 interface WorksheetFormProps {
@@ -48,12 +53,24 @@ export function WorksheetForm({
   loading,
   locked,
 }: WorksheetFormProps) {
+  const appendText = (current: string, incoming: string) =>
+    current.trim() ? `${current.trim()} ${incoming}` : incoming;
+
   const isValid =
     formData.grades.length > 0 &&
     formData.subject &&
     formData.topic.trim() &&
     formData.worksheetTypes.length > 0 &&
     formData.outputLanguage;
+
+  const { isLanguageSubject } = getSubjectLanguageRule(formData.subject);
+
+  const handleSubjectChange = (subject: string) => {
+    const newOutputLanguage = applySubjectLanguageRule(subject, formData.outputLanguage);
+    onChange({ subject, outputLanguage: newOutputLanguage });
+  };
+
+  const speechLang = formData.outputLanguage === "Hindi" ? "hi-IN" : "en-IN";
 
   return (
     <div className="space-y-4">
@@ -92,7 +109,7 @@ export function WorksheetForm({
             <PillSelector
               options={SUBJECTS}
               selected={formData.subject}
-              onChange={(subject) => onChange({ subject })}
+              onChange={handleSubjectChange}
               wrap
             />
           </div>
@@ -113,6 +130,11 @@ export function WorksheetForm({
               placeholder="e.g. Photosynthesis, Addition & Subtraction, Adjectives…"
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
             />
+            <VoiceInputAssist
+              language={speechLang}
+              disabled={locked}
+              onApply={(spokenText) => onChange({ topic: appendText(formData.topic, spokenText) })}
+            />
           </div>
 
           {/* Worksheet Types + Question Counts */}
@@ -128,15 +150,24 @@ export function WorksheetForm({
 
           {/* Output Language */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
-            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-              Output Language
-            </label>
-            <PillSelector
-              options={LANGUAGES}
-              selected={formData.outputLanguage}
-              onChange={(outputLanguage) => onChange({ outputLanguage })}
-              wrap
-            />
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
+                Output Language
+              </label>
+              {isLanguageSubject && (
+                <span className="text-xs text-amber-600 font-medium">
+                  Fixed for language subjects
+                </span>
+              )}
+            </div>
+            <div className={isLanguageSubject ? "pointer-events-none opacity-50" : ""}>
+              <PillSelector
+                options={LANGUAGES}
+                selected={formData.outputLanguage}
+                onChange={(outputLanguage) => onChange({ outputLanguage })}
+                wrap
+              />
+            </div>
           </div>
 
           {/* Details / Reference */}
@@ -155,7 +186,19 @@ export function WorksheetForm({
               rows={4}
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 resize-none transition-colors"
             />
+            <VoiceInputAssist
+              language={speechLang}
+              disabled={locked}
+              onApply={(spokenText) =>
+                onChange({ details: appendText(formData.details, spokenText) })
+              }
+            />
           </div>
+
+          <ContextFileUpload
+            files={formData.contextFiles}
+            onChange={(contextFiles) => onChange({ contextFiles })}
+          />
         </div>
       </div>
 

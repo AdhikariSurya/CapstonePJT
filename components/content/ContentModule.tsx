@@ -18,6 +18,7 @@ const DEFAULT_FORM: ContentFormData = {
   language: "english",
   contentType: "",
   description: "",
+  contextFiles: [],
 };
 
 export function ContentModule() {

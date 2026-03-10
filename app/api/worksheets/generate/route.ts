@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { buildGeminiInput, sanitizeContextFiles } from "@/lib/contextFiles";
 
 type QuestionCounts = Record<string, number>;
 
@@ -91,7 +92,16 @@ ${gradeBlocks}`;
 
 export async function POST(request: NextRequest) {
   try {
-    const { grades, subject, topic, worksheetTypes, questionCounts, outputLanguage, details } =
+    const {
+      grades,
+      subject,
+      topic,
+      worksheetTypes,
+      questionCounts,
+      outputLanguage,
+      details,
+      contextFiles,
+    } =
       await request.json();
 
     if (!grades?.length || !subject || !topic || !worksheetTypes?.length || !outputLanguage) {
@@ -109,8 +119,9 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
+    const safeFiles = sanitizeContextFiles(contextFiles);
     const prompt = buildPrompt(grades, subject, topic, worksheetTypes, questionCounts, outputLanguage, details);
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(buildGeminiInput(prompt, safeFiles));
     const rawText = result.response.text().trim();
 
     // Parse out per-grade sections

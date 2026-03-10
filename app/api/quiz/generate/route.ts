@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { buildGeminiInput, sanitizeContextFiles } from "@/lib/contextFiles";
 
 interface QuizRequestBody {
   grade: number;
@@ -8,6 +9,7 @@ interface QuizRequestBody {
   outputLanguage: string;
   numQuestions: number;
   details?: string;
+  contextFiles?: unknown[];
   questionTypes?: string[];
 }
 
@@ -149,7 +151,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as QuizRequestBody;
-    const { grade, subject, topic, outputLanguage, numQuestions, details, questionTypes } = body;
+    const { grade, subject, topic, outputLanguage, numQuestions, details, contextFiles, questionTypes } = body;
     const normalizedRequestedTypes = (questionTypes ?? [])
       .map(canonicalQuestionType)
       .filter((type): type is AllowedQuestionType => Boolean(type));
@@ -169,6 +171,7 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
+    const safeFiles = sanitizeContextFiles(contextFiles);
     const prompt = buildPrompt({
       grade,
       subject,
@@ -178,7 +181,7 @@ export async function POST(request: NextRequest) {
       details,
       questionTypes: normalizedRequestedTypes,
     });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(buildGeminiInput(prompt, safeFiles));
     const raw = result.response.text();
     const clean = stripCodeFence(raw);
 

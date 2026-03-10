@@ -22,6 +22,7 @@ const DEFAULT_FORM: PlannerFormData = {
   duration: "40",
   topic: "",
   details: "",
+  contextFiles: [],
   outputLanguage: "English",
 };
 

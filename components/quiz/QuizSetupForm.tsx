@@ -4,6 +4,10 @@ import { Loader2, Sparkles } from "lucide-react";
 import { SingleGradeSelector } from "../planner/SingleGradeSelector";
 import { PillSelector } from "../worksheet/PillSelector";
 import { clsx } from "clsx";
+import { applySubjectLanguageRule, getSubjectLanguageRule } from "@/lib/languageSubject";
+import { ContextFileUpload } from "../shared/ContextFileUpload";
+import { VoiceInputAssist } from "../shared/VoiceInputAssist";
+import type { UploadedContextFile } from "@/lib/contextFiles";
 
 const SUBJECTS = [
   { id: "English", label: "English" },
@@ -44,6 +48,7 @@ export interface QuizSetupData {
   topic: string;
   outputLanguage: string;
   details: string;
+  contextFiles: UploadedContextFile[];
   numQuestions: string;
   questionTypes: string[];
 }
@@ -56,12 +61,24 @@ interface QuizSetupFormProps {
 }
 
 export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSetupFormProps) {
+  const appendText = (current: string, incoming: string) =>
+    current.trim() ? `${current.trim()} ${incoming}` : incoming;
+
   const isValid =
     formData.grade !== null &&
     formData.subject.trim().length > 0 &&
     formData.topic.trim().length > 0 &&
     formData.outputLanguage.trim().length > 0 &&
     formData.numQuestions.trim().length > 0;
+
+  const { isLanguageSubject } = getSubjectLanguageRule(formData.subject);
+
+  const handleSubjectChange = (subject: string) => {
+    const newOutputLanguage = applySubjectLanguageRule(subject, formData.outputLanguage);
+    onChange({ subject, outputLanguage: newOutputLanguage });
+  };
+
+  const speechLang = formData.outputLanguage === "Hindi" ? "hi-IN" : "en-IN";
 
   const toggleQuestionType = (typeId: string) => {
     if (formData.questionTypes.includes(typeId)) {
@@ -88,7 +105,7 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
           <PillSelector
             options={SUBJECTS}
             selected={formData.subject}
-            onChange={(subject) => onChange({ subject })}
+            onChange={handleSubjectChange}
             wrap
           />
         </div>
@@ -108,18 +125,31 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
             placeholder="e.g. Photosynthesis, Mughal Empire, Fractions..."
             className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
           />
+          <VoiceInputAssist
+            language={speechLang}
+            onApply={(spokenText) => onChange({ topic: appendText(formData.topic, spokenText) })}
+          />
         </div>
 
         <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
-          <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-            Output Language
-          </label>
-          <PillSelector
-            options={LANGUAGES}
-            selected={formData.outputLanguage}
-            onChange={(outputLanguage) => onChange({ outputLanguage })}
-            wrap
-          />
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
+              Output Language
+            </label>
+            {isLanguageSubject && (
+              <span className="text-xs text-amber-600 font-medium">
+                Fixed for language subjects
+              </span>
+            )}
+          </div>
+          <div className={isLanguageSubject ? "pointer-events-none opacity-50" : ""}>
+            <PillSelector
+              options={LANGUAGES}
+              selected={formData.outputLanguage}
+              onChange={(outputLanguage) => onChange({ outputLanguage })}
+              wrap
+            />
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
@@ -177,7 +207,18 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
             rows={4}
             className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 resize-none transition-colors"
           />
+          <VoiceInputAssist
+            language={speechLang}
+            onApply={(spokenText) =>
+              onChange({ details: appendText(formData.details, spokenText) })
+            }
+          />
         </div>
+
+        <ContextFileUpload
+          files={formData.contextFiles}
+          onChange={(contextFiles) => onChange({ contextFiles })}
+        />
       </div>
 
       <button

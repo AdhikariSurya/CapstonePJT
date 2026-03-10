@@ -12,6 +12,7 @@ const DEFAULT_FORM: QuizSetupData = {
   topic: "",
   outputLanguage: "English",
   details: "",
+  contextFiles: [],
   numQuestions: "10",
   questionTypes: [],
 };
@@ -48,6 +49,7 @@ export function QuizModule() {
           outputLanguage: formData.outputLanguage,
           numQuestions: parseInt(formData.numQuestions, 10),
           details: formData.details.trim() || undefined,
+          contextFiles: formData.contextFiles,
           questionTypes:
             formData.questionTypes.length > 0
               ? (formData.questionTypes as QuizQuestionType[])

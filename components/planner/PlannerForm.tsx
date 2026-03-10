@@ -3,6 +3,10 @@
 import { SingleGradeSelector } from "./SingleGradeSelector";
 import { PillSelector } from "../worksheet/PillSelector";
 import { Loader2, Sparkles, Lock, Pencil } from "lucide-react";
+import { applySubjectLanguageRule, getSubjectLanguageRule } from "@/lib/languageSubject";
+import { ContextFileUpload } from "../shared/ContextFileUpload";
+import { VoiceInputAssist } from "../shared/VoiceInputAssist";
+import type { UploadedContextFile } from "@/lib/contextFiles";
 
 const SUBJECTS = [
   { id: "English", label: "English" },
@@ -33,6 +37,7 @@ export interface PlannerFormData {
   duration: string;
   topic: string;
   details: string;
+  contextFiles: UploadedContextFile[];
   outputLanguage: string;
 }
 
@@ -53,23 +58,23 @@ export function PlannerForm({
   loading,
   locked,
 }: PlannerFormProps) {
+  const appendText = (current: string, incoming: string) =>
+    current.trim() ? `${current.trim()} ${incoming}` : incoming;
+
   const isValid =
     formData.grade !== null &&
     formData.subject &&
     formData.duration &&
     formData.topic.trim();
 
-  // Check if selected subject is a language subject
-  const isLanguageSubject = ["English", "Hindi", "Sanskrit"].includes(formData.subject);
+  const { isLanguageSubject } = getSubjectLanguageRule(formData.subject);
 
-  // If subject changes to a language subject, force output language to match
   const handleSubjectChange = (subject: string) => {
-    let newOutputLanguage = formData.outputLanguage;
-    if (["English"].includes(subject)) newOutputLanguage = "English";
-    if (["Hindi", "Sanskrit"].includes(subject)) newOutputLanguage = "Hindi";
-    
+    const newOutputLanguage = applySubjectLanguageRule(subject, formData.outputLanguage);
     onChange({ subject, outputLanguage: newOutputLanguage });
   };
+
+  const speechLang = formData.outputLanguage === "Hindi" ? "hi-IN" : "en-IN";
 
   return (
     <div className="space-y-4">
@@ -141,6 +146,11 @@ export function PlannerForm({
               placeholder="e.g. Photosynthesis, Fractions, The Solar System…"
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
             />
+            <VoiceInputAssist
+              language={speechLang}
+              disabled={locked}
+              onApply={(spokenText) => onChange({ topic: appendText(formData.topic, spokenText) })}
+            />
           </div>
 
           {/* Output Language */}
@@ -181,7 +191,19 @@ export function PlannerForm({
               rows={4}
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 resize-none transition-colors"
             />
+            <VoiceInputAssist
+              language={speechLang}
+              disabled={locked}
+              onApply={(spokenText) =>
+                onChange({ details: appendText(formData.details, spokenText) })
+              }
+            />
           </div>
+
+          <ContextFileUpload
+            files={formData.contextFiles}
+            onChange={(contextFiles) => onChange({ contextFiles })}
+          />
         </div>
       </div>
 

@@ -25,6 +25,7 @@ const DEFAULT_FORM: WorksheetFormData = {
   questionCounts: {},
   outputLanguage: "English",
   details: "",
+  contextFiles: [],
 };
 
 export function WorksheetModule() {

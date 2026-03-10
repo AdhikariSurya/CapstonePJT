@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { buildGeminiInput, sanitizeContextFiles } from "@/lib/contextFiles";
 
 function buildPrompt(
   grade: number,
@@ -47,7 +48,8 @@ Now generate the lesson plan.`;
 
 export async function POST(request: NextRequest) {
   try {
-    const { grade, subject, topic, duration, outputLanguage, details } = await request.json();
+    const { grade, subject, topic, duration, outputLanguage, details, contextFiles } =
+      await request.json();
 
     if (!grade || !subject || !topic || !duration || !outputLanguage) {
       return NextResponse.json(
@@ -64,8 +66,9 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
+    const safeFiles = sanitizeContextFiles(contextFiles);
     const prompt = buildPrompt(grade, subject, topic, duration, outputLanguage, details);
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(buildGeminiInput(prompt, safeFiles));
     const text = result.response.text().trim();
 
     return NextResponse.json({
