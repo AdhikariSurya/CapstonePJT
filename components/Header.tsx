@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { User } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Header() {
   return (
@@ -15,12 +16,15 @@ export function Header() {
         </Link>
       </div>
       
-      <Link 
-        href="/profile"
-        className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-neutral-200 transition-colors"
-      >
-        <User className="w-5 h-5" />
-      </Link>
+      <div className="flex items-center gap-2">
+        <LanguageSwitcher />
+        <Link
+          href="/profile"
+          className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-neutral-200 transition-colors"
+        >
+          <User className="w-5 h-5" />
+        </Link>
+      </div>
     </header>
   );
 }

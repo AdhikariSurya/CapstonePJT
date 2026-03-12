@@ -6,6 +6,7 @@ import { LanguageSelector, type Language } from "./LanguageSelector";
 import { ReadingPassage, getReferenceText } from "./ReadingPassage";
 import { AudioRecorder } from "./AudioRecorder";
 import { EvaluationResults, type EvaluationData } from "./EvaluationResults";
+import { useLanguage } from "@/components/LanguageProvider";
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -21,6 +22,8 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export function AudioModule() {
+  const { t, locale } = useLanguage();
+  const isHi = locale === "hi";
   const [language, setLanguage] = useState<Language>("english");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [criteria, setCriteria] = useState("");
@@ -42,7 +45,7 @@ export function AudioModule() {
 
   const handleEvaluate = async () => {
     if (!audioBlob) {
-      setError("Please record audio first.");
+      setError(isHi ? "कृपया पहले ऑडियो रिकॉर्ड करें।" : "Please record audio first.");
       return;
     }
 
@@ -85,7 +88,7 @@ export function AudioModule() {
       {/* Language Pills */}
       <div className="space-y-2">
         <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider px-1">
-          Select Language
+          {t("core.audio.selectLanguage")}
         </h3>
         <LanguageSelector selected={language} onChange={setLanguage} />
       </div>
@@ -106,13 +109,13 @@ export function AudioModule() {
           htmlFor="criteria"
           className="text-xs font-bold text-neutral-400 uppercase tracking-wider block"
         >
-          Custom Evaluation Focus (Optional)
+          {t("core.audio.customFocus")}
         </label>
         <textarea
           id="criteria"
           value={criteria}
           onChange={(e) => setCriteria(e.target.value)}
-          placeholder="e.g. Focus more on pronunciation, ignore minor pauses, check confidence level…"
+          placeholder={t("core.audio.customFocusPlaceholder")}
           rows={3}
           className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 resize-none transition-colors"
         />
@@ -127,12 +130,12 @@ export function AudioModule() {
         {loading ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin" />
-            Evaluating…
+            {t("core.audio.evaluating")}
           </>
         ) : (
           <>
             <Send className="w-5 h-5" />
-            Evaluate Reading
+            {t("core.audio.evaluate")}
           </>
         )}
       </button>

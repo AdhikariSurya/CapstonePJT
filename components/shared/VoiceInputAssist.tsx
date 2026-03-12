@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Mic, MicOff } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface VoiceInputAssistProps {
   onApply: (text: string) => void;
@@ -49,6 +50,7 @@ function getSpeechRecognitionCtor():
 }
 
 export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN" }: VoiceInputAssistProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [draftText, setDraftText] = useState("");
@@ -69,7 +71,7 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
 
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
-      setError("Voice input is not supported on this browser.");
+      setError(t("shared.voiceUnsupported"));
       return;
     }
 
@@ -96,7 +98,9 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
     };
 
     recognition.onerror = (event) => {
-      setError(event.error ? `Voice input error: ${event.error}` : "Voice input failed.");
+      setError(
+        event.error ? `${t("shared.voiceErrorPrefix")}: ${event.error}` : t("shared.voiceFailed")
+      );
       setIsListening(false);
     };
 
@@ -129,7 +133,7 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-600 hover:text-neutral-800 disabled:opacity-40"
       >
         <Mic className="w-3.5 h-3.5" />
-        Voice input
+        {t("shared.voiceInput")}
       </button>
 
       {open && (
@@ -142,7 +146,7 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-900 text-white text-xs font-semibold"
               >
                 <Mic className="w-3.5 h-3.5" />
-                Start
+                {t("common.start")}
               </button>
             ) : (
               <button
@@ -151,11 +155,11 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold"
               >
                 <MicOff className="w-3.5 h-3.5" />
-                Stop
+                {t("common.stop")}
               </button>
             )}
             <span className="text-[11px] text-neutral-500">
-              {isListening ? "Listening..." : "Tap start and speak"}
+              {isListening ? t("shared.listening") : t("shared.tapStartSpeak")}
             </span>
           </div>
 
@@ -163,7 +167,7 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
             value={draftText}
             onChange={(e) => setDraftText(e.target.value)}
             rows={3}
-            placeholder="Your speech will appear here. Edit if needed, then insert."
+            placeholder={t("shared.voicePlaceholder")}
             className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 resize-none"
           />
 
@@ -176,7 +180,7 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
               disabled={!draftText.trim()}
               className="px-2.5 py-1.5 rounded-lg bg-neutral-900 text-white text-xs font-semibold disabled:opacity-40"
             >
-              Insert
+              {t("common.insert")}
             </button>
             <button
               type="button"
@@ -188,7 +192,7 @@ export function VoiceInputAssist({ onApply, disabled = false, language = "en-IN"
               }}
               className="px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-700 text-xs font-semibold"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>

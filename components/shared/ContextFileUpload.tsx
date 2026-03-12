@@ -9,6 +9,7 @@ import {
   UploadedContextFile,
   isAllowedContextMimeType,
 } from "@/lib/contextFiles";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface ContextFileUploadProps {
   files: UploadedContextFile[];
@@ -41,8 +42,10 @@ function formatSize(bytes: number): string {
 export function ContextFileUpload({
   files,
   onChange,
-  label = "Reference Files (Optional)",
+  label,
 }: ContextFileUploadProps) {
+  const { t } = useLanguage();
+  const resolvedLabel = label ?? t("shared.referenceFiles");
   const remainingSlots = Math.max(0, MAX_CONTEXT_FILES - files.length);
 
   const onFileSelect = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +78,7 @@ export function ContextFileUpload({
     <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
       <div className="flex items-center justify-between gap-2">
         <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-          {label}
+          {resolvedLabel}
         </label>
         <span className="text-[11px] text-neutral-400">
           Max {MAX_CONTEXT_FILES} files ({Math.floor(MAX_CONTEXT_FILE_SIZE_BYTES / (1024 * 1024))}MB each)
@@ -85,7 +88,7 @@ export function ContextFileUpload({
       <div className="grid grid-cols-2 gap-2">
         <label className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-sm font-medium text-neutral-600 cursor-pointer hover:bg-neutral-100 transition-colors">
           <Paperclip className="w-4 h-4" />
-          Upload File
+          {t("shared.uploadFile")}
           <input
             type="file"
             multiple
@@ -98,7 +101,7 @@ export function ContextFileUpload({
 
         <label className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-sm font-medium text-neutral-600 cursor-pointer hover:bg-neutral-100 transition-colors">
           <Camera className="w-4 h-4" />
-          Use Camera
+          {t("shared.useCamera")}
           <input
             type="file"
             accept="image/*"

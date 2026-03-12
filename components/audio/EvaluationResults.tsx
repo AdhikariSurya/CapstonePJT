@@ -2,6 +2,7 @@
 
 import { clsx } from "clsx";
 import { AlertTriangle, CheckCircle2, TrendingUp, MessageSquare } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export interface EvaluationData {
   word_accuracy_score: number;
@@ -49,6 +50,36 @@ interface EvaluationResultsProps {
 }
 
 export function EvaluationResults({ data }: EvaluationResultsProps) {
+  const { locale } = useLanguage();
+  const labels =
+    locale === "hi"
+      ? {
+          overall: "कुल स्कोर",
+          details: "विस्तृत स्कोर",
+          wordAccuracy: "शब्द शुद्धता",
+          pronunciation: "उच्चारण",
+          fluency: "प्रवाह",
+          pacing: "गति",
+          confidence: "आत्मविश्वास",
+          mistakes: "गलतियां",
+          strengths: "ताकत",
+          improve: "सुधार के क्षेत्र",
+          summary: "शिक्षक सारांश",
+        }
+      : {
+          overall: "Overall Score",
+          details: "Detailed Scores",
+          wordAccuracy: "Word Accuracy",
+          pronunciation: "Pronunciation",
+          fluency: "Fluency",
+          pacing: "Pacing",
+          confidence: "Confidence",
+          mistakes: "Mistakes",
+          strengths: "Strengths",
+          improve: "Areas to Improve",
+          summary: "Teacher Summary",
+        };
+
   return (
     <div className="space-y-4">
       {/* Overall Score */}
@@ -58,7 +89,7 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
           overallBg(data.overall_score)
         )}
       >
-        <p className="text-sm font-medium opacity-90 mb-1">Overall Score</p>
+        <p className="text-sm font-medium opacity-90 mb-1">{labels.overall}</p>
         <p className="text-5xl font-extrabold tracking-tight">
           {data.overall_score}
           <span className="text-2xl font-medium opacity-70">/10</span>
@@ -68,14 +99,14 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
       {/* Sub-scores */}
       <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm">
         <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-          Detailed Scores
+          {labels.details}
         </h3>
         <div className="divide-y divide-neutral-50">
-          <ScoreCard label="Word Accuracy" score={data.word_accuracy_score} />
-          <ScoreCard label="Pronunciation" score={data.pronunciation_score} />
-          <ScoreCard label="Fluency" score={data.fluency_score} />
-          <ScoreCard label="Pacing" score={data.pacing_score} />
-          <ScoreCard label="Confidence" score={data.confidence_score} />
+          <ScoreCard label={labels.wordAccuracy} score={data.word_accuracy_score} />
+          <ScoreCard label={labels.pronunciation} score={data.pronunciation_score} />
+          <ScoreCard label={labels.fluency} score={data.fluency_score} />
+          <ScoreCard label={labels.pacing} score={data.pacing_score} />
+          <ScoreCard label={labels.confidence} score={data.confidence_score} />
         </div>
       </div>
 
@@ -85,7 +116,7 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
             <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-              Mistakes
+              {labels.mistakes}
             </h3>
           </div>
           <ul className="space-y-1.5">
@@ -106,7 +137,7 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
         <div className="flex items-center gap-2 mb-3">
           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-            Strengths
+            {labels.strengths}
           </h3>
         </div>
         <p className="text-sm text-neutral-600 leading-relaxed">
@@ -119,7 +150,7 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-4 h-4 text-blue-500" />
           <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-            Areas to Improve
+            {labels.improve}
           </h3>
         </div>
         <p className="text-sm text-neutral-600 leading-relaxed">
@@ -132,7 +163,7 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
         <div className="flex items-center gap-2 mb-3">
           <MessageSquare className="w-4 h-4 text-violet-500" />
           <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-            Teacher Summary
+            {labels.summary}
           </h3>
         </div>
         <p className="text-sm text-neutral-700 leading-relaxed font-medium">

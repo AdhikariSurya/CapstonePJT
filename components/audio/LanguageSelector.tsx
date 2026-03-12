@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export type Language = "english" | "hindi" | "bengali";
 
@@ -16,6 +17,10 @@ const LANGUAGES: { id: Language; label: string }[] = [
 ];
 
 export function LanguageSelector({ selected, onChange }: LanguageSelectorProps) {
+  const { t } = useLanguage();
+  const localizedLabel = (id: Language) =>
+    id === "english" ? t("language.english") : id === "hindi" ? t("language.hindi") : "Bengali";
+
   return (
     <div className="flex gap-2">
       {LANGUAGES.map((lang) => (
@@ -29,7 +34,7 @@ export function LanguageSelector({ selected, onChange }: LanguageSelectorProps) 
               : "bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300 active:bg-neutral-50"
           )}
         >
-          {lang.label}
+          {localizedLabel(lang.id)}
         </button>
       ))}
     </div>

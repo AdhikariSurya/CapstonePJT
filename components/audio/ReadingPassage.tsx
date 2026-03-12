@@ -1,6 +1,7 @@
 "use client";
 
 import type { Language } from "./LanguageSelector";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface PassageData {
   sentences: string[];
@@ -32,12 +33,13 @@ interface ReadingPassageProps {
 }
 
 export function ReadingPassage({ language }: ReadingPassageProps) {
+  const { t } = useLanguage();
   const passage = PASSAGES[language];
 
   return (
     <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-4">
       <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-        Reading Passage
+        {t("core.audio.readingPassage")}
       </h3>
       <div className="space-y-4">
         {passage.sentences.map((sentence, idx) => (

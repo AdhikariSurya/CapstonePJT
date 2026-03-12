@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Header } from "@/components/Header";
+import { LanguageProvider } from "@/components/LanguageProvider";
+import { ProfileProvider } from "@/components/ProfileProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,10 +24,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-neutral-50">
-        <main className="mx-auto max-w-md min-h-screen relative">
-          <Header />
-          {children}
-        </main>
+        <LanguageProvider>
+          <ProfileProvider>
+            <main className="mx-auto max-w-md min-h-screen relative">
+              <Header />
+              {children}
+            </main>
+          </ProfileProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

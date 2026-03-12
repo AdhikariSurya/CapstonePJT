@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Copy, Check, RefreshCcw, PlusCircle } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface PlannerOutputProps {
   plan: string;
@@ -18,6 +19,7 @@ interface PlannerOutputProps {
 }
 
 function CopyButton({ text }: { text: string }) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -34,12 +36,12 @@ function CopyButton({ text }: { text: string }) {
       {copied ? (
         <>
           <Check className="w-3.5 h-3.5 text-emerald-500" />
-          Copied
+          {t("common.copied")}
         </>
       ) : (
         <>
           <Copy className="w-3.5 h-3.5" />
-          Copy
+          {t("common.copy")}
         </>
       )}
     </button>
@@ -47,6 +49,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function PlannerOutput({ plan, metadata, onRegenerate, onNew }: PlannerOutputProps) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       {/* Meta bar */}
@@ -83,14 +86,14 @@ export function PlannerOutput({ plan, metadata, onRegenerate, onNew }: PlannerOu
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-neutral-900 text-white rounded-2xl text-sm font-bold transition-all touch-manipulation active:scale-[0.98] shadow-md"
         >
           <RefreshCcw className="w-4 h-4" />
-          Regenerate
+          {t("common.regenerate")}
         </button>
         <button
           onClick={onNew}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-white text-neutral-700 rounded-2xl text-sm font-bold border border-neutral-200 transition-all touch-manipulation active:scale-[0.98] hover:bg-neutral-50"
         >
           <PlusCircle className="w-4 h-4" />
-          New Plan
+          {t("core.planner.new")}
         </button>
       </div>
     </div>

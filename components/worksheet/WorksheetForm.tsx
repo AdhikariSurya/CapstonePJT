@@ -7,6 +7,7 @@ import { Loader2, Sparkles, Lock, Pencil } from "lucide-react";
 import { applySubjectLanguageRule, getSubjectLanguageRule } from "@/lib/languageSubject";
 import { ContextFileUpload } from "../shared/ContextFileUpload";
 import { VoiceInputAssist } from "../shared/VoiceInputAssist";
+import { useLanguage } from "@/components/LanguageProvider";
 import type { UploadedContextFile } from "@/lib/contextFiles";
 
 const SUBJECTS = [
@@ -53,6 +54,8 @@ export function WorksheetForm({
   loading,
   locked,
 }: WorksheetFormProps) {
+  const { t, locale } = useLanguage();
+  const isHi = locale === "hi";
   const appendText = (current: string, incoming: string) =>
     current.trim() ? `${current.trim()} ${incoming}` : incoming;
 
@@ -79,14 +82,14 @@ export function WorksheetForm({
         <div className="flex items-center justify-between px-4 py-2.5 bg-neutral-100 rounded-xl">
           <div className="flex items-center gap-2 text-neutral-500">
             <Lock className="w-3.5 h-3.5" />
-            <span className="text-xs font-semibold">Inputs locked</span>
+            <span className="text-xs font-semibold">{t("common.inputsLocked")}</span>
           </div>
           <button
             onClick={onUnlock}
             className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-neutral-900 transition-colors"
           >
             <Pencil className="w-3 h-3" />
-            Edit
+            {t("common.edit")}
           </button>
         </div>
       )}
@@ -104,7 +107,7 @@ export function WorksheetForm({
           {/* Subject */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
             <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-              Subject
+              {isHi ? "विषय" : "Subject"}
             </label>
             <PillSelector
               options={SUBJECTS}
@@ -120,14 +123,18 @@ export function WorksheetForm({
               htmlFor="topic"
               className="text-xs font-bold text-neutral-400 uppercase tracking-wider block"
             >
-              Topic
+              {isHi ? "विषय-वस्तु" : "Topic"}
             </label>
             <input
               id="topic"
               type="text"
               value={formData.topic}
               onChange={(e) => onChange({ topic: e.target.value })}
-              placeholder="e.g. Photosynthesis, Addition & Subtraction, Adjectives…"
+              placeholder={
+                isHi
+                  ? "उदा. प्रकाश संश्लेषण, जोड़ और घटाव, विशेषण..."
+                  : "e.g. Photosynthesis, Addition & Subtraction, Adjectives..."
+              }
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
             />
             <VoiceInputAssist
@@ -152,11 +159,11 @@ export function WorksheetForm({
           <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-                Output Language
+                {isHi ? "आउटपुट भाषा" : "Output Language"}
               </label>
               {isLanguageSubject && (
                 <span className="text-xs text-amber-600 font-medium">
-                  Fixed for language subjects
+                  {isHi ? "भाषा विषयों के लिए तय" : "Fixed for language subjects"}
                 </span>
               )}
             </div>
@@ -176,13 +183,17 @@ export function WorksheetForm({
               htmlFor="details"
               className="text-xs font-bold text-neutral-400 uppercase tracking-wider block"
             >
-              Content Reference (Optional)
+              {isHi ? "सामग्री संदर्भ (वैकल्पिक)" : "Content Reference (Optional)"}
             </label>
             <textarea
               id="details"
               value={formData.details}
               onChange={(e) => onChange({ details: e.target.value })}
-              placeholder="Paste chapter text, key concepts, or any context to guide the worksheet generation…"
+              placeholder={
+                isHi
+                  ? "अध्याय का पाठ, मुख्य अवधारणाएं या कोई संदर्भ चिपकाएं..."
+                  : "Paste chapter text, key concepts, or any context to guide the worksheet generation..."
+              }
               rows={4}
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 resize-none transition-colors"
             />
@@ -212,12 +223,12 @@ export function WorksheetForm({
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Generating Worksheets…
+              {t("core.worksheet.generating")}
             </>
           ) : (
             <>
               <Sparkles className="w-5 h-5" />
-              Generate Worksheets
+              {t("core.worksheet.generate")}
             </>
           )}
         </button>

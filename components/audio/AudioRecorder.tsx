@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Mic, Square, Trash2 } from "lucide-react";
 import { clsx } from "clsx";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface AudioRecorderProps {
   onRecordingComplete: (blob: Blob) => void;
@@ -15,6 +16,7 @@ export function AudioRecorder({
   onClear,
   hasRecording,
 }: AudioRecorderProps) {
+  const { t, locale } = useLanguage();
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -54,9 +56,13 @@ export function AudioRecorder({
         setDuration((d) => d + 1);
       }, 1000);
     } catch {
-      alert("Could not access microphone. Please allow microphone permissions.");
+      alert(
+        locale === "hi"
+          ? "माइक्रोफोन उपलब्ध नहीं है। कृपया माइक्रोफोन अनुमति दें।"
+          : "Could not access microphone. Please allow microphone permissions."
+      );
     }
-  }, [onRecordingComplete]);
+  }, [locale, onRecordingComplete]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === "recording") {
@@ -85,7 +91,7 @@ export function AudioRecorder({
   return (
     <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-4">
       <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-        Record Audio
+        {t("core.audio.recordAudio")}
       </h3>
 
       <div className="flex items-center gap-3">
@@ -101,7 +107,7 @@ export function AudioRecorder({
             )}
           >
             <Mic className="w-5 h-5" />
-            Start Recording
+            {t("core.audio.startRecording")}
           </button>
         ) : (
           <button
@@ -109,7 +115,7 @@ export function AudioRecorder({
             className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold bg-neutral-900 text-white active:scale-[0.97] hover:bg-neutral-800 shadow-sm transition-all touch-manipulation"
           >
             <Square className="w-4 h-4 fill-current" />
-            Stop Recording
+            {t("core.audio.stopRecording")}
           </button>
         )}
 
@@ -119,7 +125,7 @@ export function AudioRecorder({
             className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-neutral-500 bg-neutral-50 hover:bg-neutral-100 transition-colors touch-manipulation"
           >
             <Trash2 className="w-4 h-4" />
-            Clear
+            {t("common.clear")}
           </button>
         )}
       </div>
@@ -132,14 +138,14 @@ export function AudioRecorder({
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
           </span>
           <span className="text-sm font-medium text-neutral-700">
-            Recording… {formatTime(duration)}
+            {t("core.audio.recording")} {formatTime(duration)}
           </span>
         </div>
       )}
 
       {hasRecording && !isRecording && (
         <p className="text-sm text-emerald-600 font-medium">
-          Recording saved — {formatTime(duration)}
+          {t("core.audio.saved")} - {formatTime(duration)}
         </p>
       )}
     </div>

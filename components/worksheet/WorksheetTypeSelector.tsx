@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export type WorksheetTypeId = "mcq" | "short_answer" | "long_answer" | "fill_blanks";
 
@@ -38,6 +39,8 @@ export function WorksheetTypeSelector({
   questionCounts,
   onChange,
 }: WorksheetTypeSelectorProps) {
+  const { locale } = useLanguage();
+  const isHi = locale === "hi";
   const currentTotal = selectedTypes.reduce((s, t) => s + (questionCounts[t] ?? 0), 0);
 
   const toggleType = (id: string) => {
@@ -64,11 +67,14 @@ export function WorksheetTypeSelector({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-          Worksheet Type(s)
+          {isHi ? "वर्कशीट प्रकार" : "Worksheet Type(s)"}
         </label>
         {selectedTypes.length > 0 && (
           <span className="text-xs text-neutral-400 font-medium">
-            Total: <span className="font-bold text-neutral-600">{currentTotal} questions</span>
+            {isHi ? "कुल:" : "Total:"}{" "}
+            <span className="font-bold text-neutral-600">
+              {currentTotal} {isHi ? "प्रश्न" : "questions"}
+            </span>
           </span>
         )}
       </div>

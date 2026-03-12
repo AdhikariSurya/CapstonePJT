@@ -7,6 +7,7 @@ import { clsx } from "clsx";
 import { applySubjectLanguageRule, getSubjectLanguageRule } from "@/lib/languageSubject";
 import { ContextFileUpload } from "../shared/ContextFileUpload";
 import { VoiceInputAssist } from "../shared/VoiceInputAssist";
+import { useLanguage } from "@/components/LanguageProvider";
 import type { UploadedContextFile } from "@/lib/contextFiles";
 
 const SUBJECTS = [
@@ -61,6 +62,8 @@ interface QuizSetupFormProps {
 }
 
 export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSetupFormProps) {
+  const { t, locale } = useLanguage();
+  const isHi = locale === "hi";
   const appendText = (current: string, incoming: string) =>
     current.trim() ? `${current.trim()} ${incoming}` : incoming;
 
@@ -100,7 +103,7 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
       <div className="space-y-4">
         <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
           <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-            Subject
+            {isHi ? "विषय" : "Subject"}
           </label>
           <PillSelector
             options={SUBJECTS}
@@ -115,7 +118,7 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
             htmlFor="quiz-topic"
             className="text-xs font-bold text-neutral-400 uppercase tracking-wider block"
           >
-            Topic
+            {isHi ? "विषय-वस्तु" : "Topic"}
           </label>
           <input
             id="quiz-topic"
@@ -134,11 +137,11 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
         <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-              Output Language
+              {isHi ? "आउटपुट भाषा" : "Output Language"}
             </label>
             {isLanguageSubject && (
               <span className="text-xs text-amber-600 font-medium">
-                Fixed for language subjects
+                {isHi ? "भाषा विषयों के लिए तय" : "Fixed for language subjects"}
               </span>
             )}
           </div>
@@ -154,7 +157,7 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
 
         <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
           <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-            Number of Questions
+            {isHi ? "प्रश्नों की संख्या" : "Number of Questions"}
           </label>
           <PillSelector
             options={QUESTION_COUNTS}
@@ -167,9 +170,11 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
         <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between gap-2">
             <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-              Question Types (Optional)
+              {isHi ? "प्रश्न प्रकार (वैकल्पिक)" : "Question Types (Optional)"}
             </label>
-            <span className="text-[11px] text-neutral-400">None selected = mixed</span>
+            <span className="text-[11px] text-neutral-400">
+              {isHi ? "कुछ नहीं चुना = मिश्रित" : "None selected = mixed"}
+            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {QUESTION_TYPES.map((type) => {
@@ -197,7 +202,7 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
             htmlFor="quiz-details"
             className="text-xs font-bold text-neutral-400 uppercase tracking-wider block"
           >
-            Reference Content (Optional)
+            {isHi ? "संदर्भ सामग्री (वैकल्पिक)" : "Reference Content (Optional)"}
           </label>
           <textarea
             id="quiz-details"
@@ -229,12 +234,12 @@ export function QuizSetupForm({ formData, onChange, onSubmit, loading }: QuizSet
         {loading ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin" />
-            Generating Quiz Bank...
+            {t("core.quiz.generating")}
           </>
         ) : (
           <>
             <Sparkles className="w-5 h-5" />
-            Start Quiz
+            {t("core.quiz.start")}
           </>
         )}
       </button>

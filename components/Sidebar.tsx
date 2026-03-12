@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
+import { useLanguage } from "@/components/LanguageProvider";
+import { useProfile } from "@/components/ProfileProvider";
+import { PROFILE_META, type UserProfile } from "@/lib/profiles";
 
 // Placeholder data — replace with real data later
 const PLACEHOLDER_FOLDERS = [
@@ -36,7 +39,10 @@ export function Sidebar() {
   const [mounted, setMounted] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [profileSwitchOpen, setProfileSwitchOpen] = useState(false);
   const pathname = usePathname();
+  const { t } = useLanguage();
+  const { profile, setProfile } = useProfile();
 
   useEffect(() => {
     setMounted(true);
@@ -64,7 +70,7 @@ export function Sidebar() {
       <button
         onClick={() => setIsOpen(true)}
         className="p-2 -ml-2 text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors active:bg-neutral-200"
-        aria-label="Open menu"
+        aria-label={t("sidebar.openMenu")}
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -105,7 +111,7 @@ export function Sidebar() {
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-                  aria-label="Close menu"
+                  aria-label={t("sidebar.closeMenu")}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -124,7 +130,7 @@ export function Sidebar() {
                   )}
                 >
                   <Home className="w-5 h-5 flex-shrink-0" />
-                  Home
+                  {t("sidebar.home")}
                 </Link>
 
                 {/* Folders — link + dropdown toggle */}
@@ -142,12 +148,12 @@ export function Sidebar() {
                       className="flex items-center gap-3 px-3 py-3 flex-1 min-w-0"
                     >
                       <FolderOpen className="w-5 h-5 flex-shrink-0" />
-                      Folders
+                      {t("sidebar.folders")}
                     </Link>
                     <button
                       onClick={() => setFoldersOpen((v) => !v)}
                       className="px-3 py-3 hover:bg-black/10 transition-colors rounded-r-xl"
-                      aria-label="Toggle folders"
+                      aria-label={t("sidebar.toggleFolders")}
                     >
                       {foldersOpen ? (
                         <ChevronDown className="w-4 h-4" />
@@ -189,12 +195,12 @@ export function Sidebar() {
                       className="flex items-center gap-3 px-3 py-3 flex-1 min-w-0"
                     >
                       <Clock className="w-5 h-5 flex-shrink-0" />
-                      History
+                      {t("sidebar.history")}
                     </Link>
                     <button
                       onClick={() => setHistoryOpen((v) => !v)}
                       className="px-3 py-3 hover:bg-black/10 transition-colors rounded-r-xl"
-                      aria-label="Toggle history"
+                      aria-label={t("sidebar.toggleHistory")}
                     >
                       {historyOpen ? (
                         <ChevronDown className="w-4 h-4" />
@@ -224,13 +230,61 @@ export function Sidebar() {
 
               {/* Footer */}
               <div className="px-3 py-4 border-t border-neutral-100">
+                <div className="mb-3 space-y-2">
+                  <button
+                    onClick={() => setProfileSwitchOpen((v) => !v)}
+                    className="flex items-center justify-between gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-neutral-700 bg-neutral-50 hover:bg-neutral-100 transition-colors"
+                  >
+                    <span className="flex items-center gap-3 min-w-0">
+                      <span className="w-8 h-8 rounded-full bg-neutral-900 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        {PROFILE_META[profile].shortLabel}
+                      </span>
+                      <span className="min-w-0 text-left">
+                        <span className="block text-sm font-semibold text-neutral-900 truncate">
+                          {PROFILE_META[profile].name}
+                        </span>
+                        <span className="block text-xs text-neutral-500">
+                          {PROFILE_META[profile].role} {t("sidebar.profile")}
+                        </span>
+                      </span>
+                    </span>
+                    {profileSwitchOpen ? (
+                      <ChevronDown className="w-4 h-4 text-neutral-500 flex-shrink-0" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-neutral-500 flex-shrink-0" />
+                    )}
+                  </button>
+
+                  {profileSwitchOpen && (
+                    <div className="ml-2 pl-3 border-l-2 border-neutral-100 space-y-1">
+                      {(["teacher", "student"] as UserProfile[]).map((profileKey) => {
+                        const active = profile === profileKey;
+                        return (
+                          <button
+                            key={profileKey}
+                            onClick={() => setProfile(profileKey)}
+                            className={clsx(
+                              "w-full text-left px-2.5 py-2 rounded-lg text-xs font-medium transition-colors",
+                              active
+                                ? "bg-neutral-900 text-white"
+                                : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                            )}
+                          >
+                            {PROFILE_META[profileKey].name} ({PROFILE_META[profileKey].role})
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 <button className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
                   <Settings className="w-5 h-5 flex-shrink-0" />
-                  Settings
+                  {t("sidebar.settings")}
                 </button>
                 <button className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors mt-0.5">
                   <LogOut className="w-5 h-5 flex-shrink-0" />
-                  Sign Out
+                  {t("sidebar.signOut")}
                 </button>
                 {/* Safe-area spacer at bottom */}
                 <div style={{ height: "env(safe-area-inset-bottom, 0px)" }} />

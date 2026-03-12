@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { clsx } from "clsx";
 import { Copy, Check, RefreshCcw, PlusCircle } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface WorksheetOutputProps {
   worksheets: Record<number, string>;
@@ -20,6 +21,7 @@ interface WorksheetOutputProps {
 }
 
 function CopyButton({ text }: { text: string }) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -36,12 +38,12 @@ function CopyButton({ text }: { text: string }) {
       {copied ? (
         <>
           <Check className="w-3.5 h-3.5 text-emerald-500" />
-          Copied
+          {t("common.copied")}
         </>
       ) : (
         <>
           <Copy className="w-3.5 h-3.5" />
-          Copy
+          {t("common.copy")}
         </>
       )}
     </button>
@@ -49,6 +51,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function WorksheetOutput({ worksheets, metadata, onRegenerate, onNew }: WorksheetOutputProps) {
+  const { t } = useLanguage();
   const grades = metadata.grades.sort((a, b) => a - b);
   const [activeGrade, setActiveGrade] = useState<number>(grades[0]);
 
@@ -122,14 +125,14 @@ export function WorksheetOutput({ worksheets, metadata, onRegenerate, onNew }: W
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-neutral-900 text-white rounded-2xl text-sm font-bold transition-all touch-manipulation active:scale-[0.98] shadow-md"
         >
           <RefreshCcw className="w-4 h-4" />
-          Regenerate
+          {t("common.regenerate")}
         </button>
         <button
           onClick={onNew}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-white text-neutral-700 rounded-2xl text-sm font-bold border border-neutral-200 transition-all touch-manipulation active:scale-[0.98] hover:bg-neutral-50"
         >
           <PlusCircle className="w-4 h-4" />
-          New Worksheet
+          {t("core.worksheet.new")}
         </button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { PillSelector } from "../worksheet/PillSelector";
 import { Loader2, Sparkles, Lock, Pencil } from "lucide-react";
 import { ContextFileUpload } from "../shared/ContextFileUpload";
 import { VoiceInputAssist } from "../shared/VoiceInputAssist";
+import { useLanguage } from "@/components/LanguageProvider";
 import type { UploadedContextFile } from "@/lib/contextFiles";
 
 const LANGUAGES = [
@@ -45,6 +46,8 @@ export function ContentForm({
   loading,
   locked,
 }: ContentFormProps) {
+  const { t, locale } = useLanguage();
+  const isHi = locale === "hi";
   const appendText = (current: string, incoming: string) =>
     current.trim() ? `${current.trim()} ${incoming}` : incoming;
 
@@ -81,14 +84,14 @@ export function ContentForm({
         <div className="flex items-center justify-between px-4 py-2.5 bg-neutral-100 rounded-xl">
           <div className="flex items-center gap-2 text-neutral-500">
             <Lock className="w-3.5 h-3.5" />
-            <span className="text-xs font-semibold">Inputs locked</span>
+            <span className="text-xs font-semibold">{t("common.inputsLocked")}</span>
           </div>
           <button
             onClick={onUnlock}
             className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-neutral-900 transition-colors"
           >
             <Pencil className="w-3 h-3" />
-            Edit
+            {t("common.edit")}
           </button>
         </div>
       )}
@@ -97,7 +100,7 @@ export function ContentForm({
         {/* Language */}
         <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
           <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-            Language
+            {isHi ? "भाषा" : "Language"}
           </label>
           <PillSelector
             options={LANGUAGES}
@@ -111,7 +114,7 @@ export function ContentForm({
           {/* Content Type */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
             <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-              Content Type
+              {isHi ? "सामग्री प्रकार" : "Content Type"}
             </label>
             <PillSelector
               options={CONTENT_TYPES}
@@ -127,7 +130,11 @@ export function ContentForm({
               htmlFor="description"
               className="text-xs font-bold text-neutral-400 uppercase tracking-wider block"
             >
-              {contentTypeLabel ? `${contentTypeLabel} Description` : "Description"}
+              {contentTypeLabel
+                ? `${contentTypeLabel} ${isHi ? "विवरण" : "Description"}`
+                : isHi
+                  ? "विवरण"
+                  : "Description"}
             </label>
             <textarea
               id="description"
@@ -163,12 +170,12 @@ export function ContentForm({
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Generating Content…
+              {t("core.content.generating")}
             </>
           ) : (
             <>
               <Sparkles className="w-5 h-5" />
-              Generate Content
+              {t("core.content.generate")}
             </>
           )}
         </button>

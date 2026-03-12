@@ -5,6 +5,7 @@ import { QuizPlayer } from "./QuizPlayer";
 import { QuizResults } from "./QuizResults";
 import { QuizSetupData, QuizSetupForm } from "./QuizSetupForm";
 import type { QuizApiResponse, QuizQuestionType, StudentAnswer } from "./types";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const DEFAULT_FORM: QuizSetupData = {
   grade: null,
@@ -20,6 +21,8 @@ const DEFAULT_FORM: QuizSetupData = {
 type QuizStage = "setup" | "quiz" | "result";
 
 export function QuizModule() {
+  const { locale } = useLanguage();
+  const isHi = locale === "hi";
   const [formData, setFormData] = useState<QuizSetupData>(DEFAULT_FORM);
   const [stage, setStage] = useState<QuizStage>("setup");
   const [loading, setLoading] = useState(false);
@@ -112,7 +115,8 @@ export function QuizModule() {
           <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">Quiz</p>
           <h2 className="text-base font-bold text-neutral-900 mt-1">{generated.quiz_title}</h2>
           <p className="text-xs text-neutral-500 mt-1">
-            Grade {generated.metadata.grade} • {generated.metadata.subject} • {generated.metadata.topic}
+            {isHi ? "कक्षा" : "Grade"} {generated.metadata.grade} • {generated.metadata.subject} •{" "}
+            {generated.metadata.topic}
           </p>
         </div>
       )}

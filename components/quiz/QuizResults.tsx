@@ -2,6 +2,7 @@
 
 import { RotateCcw, Sparkles, Trophy } from "lucide-react";
 import { StudentAnswer } from "./types";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface QuizResultsProps {
   answers: StudentAnswer[];
@@ -28,6 +29,8 @@ export function QuizResults({
   onTryAgain,
   onNewQuiz,
 }: QuizResultsProps) {
+  const { t, locale } = useLanguage();
+  const isHi = locale === "hi";
   const correctCount = answers.filter((a) => a.isCorrect).length;
   const accuracy = answers.length > 0 ? Math.round((correctCount / answers.length) * 100) : 0;
   const adaptiveScore = answers.reduce(
@@ -40,30 +43,30 @@ export function QuizResults({
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-neutral-900">Quiz Results</h2>
+          <h2 className="text-lg font-bold text-neutral-900">{isHi ? "क्विज़ परिणाम" : "Quiz Results"}</h2>
           <Trophy className="w-5 h-5 text-amber-500" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">Score</p>
+            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">{isHi ? "स्कोर" : "Score"}</p>
             <p className="text-xl font-bold text-neutral-900 mt-1">
               {correctCount}/{answers.length}
             </p>
           </div>
           <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">Accuracy</p>
+            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">{isHi ? "सटीकता" : "Accuracy"}</p>
             <p className="text-xl font-bold text-neutral-900 mt-1">{accuracy}%</p>
           </div>
           <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
             <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">
-              Highest Level
+              {isHi ? "उच्चतम स्तर" : "Highest Level"}
             </p>
             <p className="text-xl font-bold text-neutral-900 mt-1">{highestDifficulty}</p>
           </div>
           <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
             <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">
-              Adaptive Score
+              {isHi ? "अनुकूली स्कोर" : "Adaptive Score"}
             </p>
             <p className="text-xl font-bold text-neutral-900 mt-1">
               {adaptiveScore}/{maxAdaptive}
@@ -73,7 +76,7 @@ export function QuizResults({
       </div>
 
       <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
-        <h3 className="text-sm font-bold text-neutral-900">Question Review</h3>
+        <h3 className="text-sm font-bold text-neutral-900">{isHi ? "प्रश्न समीक्षा" : "Question Review"}</h3>
         <div className="space-y-3">
           {answers.map((answer, idx) => (
             <div
@@ -85,11 +88,12 @@ export function QuizResults({
               </p>
               <p className="text-sm font-semibold text-neutral-800">{answer.questionText}</p>
               <p className="text-xs text-neutral-600">
-                Your answer: <span className="font-medium">{toDisplayAnswer(answer.studentAnswer)}</span>
+                {isHi ? "आपका उत्तर:" : "Your answer:"}{" "}
+                <span className="font-medium">{toDisplayAnswer(answer.studentAnswer)}</span>
               </p>
               {!answer.isCorrect && (
                 <p className="text-xs text-red-600">
-                  Correct answer:{" "}
+                  {isHi ? "सही उत्तर:" : "Correct answer:"}{" "}
                   <span className="font-medium">{toDisplayAnswer(answer.correctAnswer)}</span>
                 </p>
               )}
@@ -105,14 +109,14 @@ export function QuizResults({
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-neutral-200 bg-white text-neutral-700 text-sm font-semibold hover:bg-neutral-50 transition-colors"
         >
           <RotateCcw className="w-4 h-4" />
-          Try Again
+          {t("core.quiz.tryAgain")}
         </button>
         <button
           onClick={onNewQuiz}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-neutral-900 text-white text-sm font-semibold transition-all touch-manipulation active:scale-[0.98]"
         >
           <Sparkles className="w-4 h-4" />
-          New Quiz
+          {t("core.quiz.new")}
         </button>
       </div>
     </div>

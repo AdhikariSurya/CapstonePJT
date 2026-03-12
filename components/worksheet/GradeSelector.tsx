@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface GradeSelectorProps {
   selected: number[];
@@ -10,6 +11,8 @@ interface GradeSelectorProps {
 const GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export function GradeSelector({ selected, onChange }: GradeSelectorProps) {
+  const { locale, t } = useLanguage();
+  const isHi = locale === "hi";
   const toggle = (grade: number) => {
     if (selected.includes(grade)) {
       onChange(selected.filter((g) => g !== grade));
@@ -22,14 +25,14 @@ export function GradeSelector({ selected, onChange }: GradeSelectorProps) {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-          Grade Level(s)
+          {isHi ? "कक्षा स्तर" : "Grade Level(s)"}
         </label>
         {selected.length > 0 && (
           <button
             onClick={() => onChange([])}
             className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
           >
-            Clear
+            {t("common.clear")}
           </button>
         )}
       </div>
@@ -53,7 +56,9 @@ export function GradeSelector({ selected, onChange }: GradeSelectorProps) {
         })}
       </div>
       {selected.length === 0 && (
-        <p className="text-xs text-neutral-400">Select at least one grade</p>
+        <p className="text-xs text-neutral-400">
+          {isHi ? "कम से कम एक कक्षा चुनें" : "Select at least one grade"}
+        </p>
       )}
     </div>
   );

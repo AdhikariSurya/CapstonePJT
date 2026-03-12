@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, CheckCircle2, GripVertical, XCircle } from "lucide-react";
 import type { QuizQuestion, StudentAnswer } from "./types";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface QuizPlayerProps {
   questionBank: QuizQuestion[];
@@ -52,28 +53,36 @@ function Progress({
   current,
   total,
   streak,
+  isHi,
 }: {
   current: number;
   total: number;
   streak: number;
+  isHi: boolean;
 }) {
   const pct = Math.min(100, Math.round((current / total) * 100));
   return (
     <div className="bg-white rounded-2xl border border-neutral-100 p-4 shadow-sm space-y-3">
       <div className="flex items-center justify-between text-xs font-semibold">
         <span className="text-neutral-500">
-          Question {current} of {total}
+          {isHi ? "प्रश्न" : "Question"} {current} {isHi ? "में से" : "of"} {total}
         </span>
       </div>
       <div className="h-2.5 rounded-full bg-neutral-100 overflow-hidden">
         <div className="h-full bg-neutral-900 transition-all" style={{ width: `${pct}%` }} />
       </div>
-      {streak >= 2 && <p className="text-xs text-emerald-600 font-semibold">{streak} in a row! 🔥</p>}
+      {streak >= 2 && (
+        <p className="text-xs text-emerald-600 font-semibold">
+          {isHi ? `${streak} लगातार सही!` : `${streak} in a row!`} 🔥
+        </p>
+      )}
     </div>
   );
 }
 
 export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPlayerProps) {
+  const { t, locale } = useLanguage();
+  const isHi = locale === "hi";
   const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
   const [answers, setAnswers] = useState<StudentAnswer[]>([]);
   const [currentDifficulty, setCurrentDifficulty] = useState(3);
@@ -290,6 +299,7 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
         current={answers.length + 1}
         total={totalQuestions}
         streak={streak}
+        isHi={isHi}
       />
 
       <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-4">
@@ -326,7 +336,7 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
             type="text"
             value={fillAnswer}
             onChange={(e) => setFillAnswer(e.target.value)}
-            placeholder="Type your answer..."
+            placeholder={isHi ? "अपना उत्तर लिखें..." : "Type your answer..."}
             className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
           />
         )}
@@ -498,7 +508,7 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
               onClick={nextQuestion}
               className="w-full rounded-xl bg-neutral-900 text-white py-3 text-sm font-semibold transition-all touch-manipulation active:scale-[0.98]"
             >
-              {answers.length >= totalQuestions ? "Finish Quiz" : "Next Question"}
+              {answers.length >= totalQuestions ? t("core.quiz.finish") : t("core.quiz.next")}
             </button>
           </div>
         ) : (
@@ -507,7 +517,7 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
             disabled={!canSubmit}
             className="w-full rounded-xl bg-neutral-900 text-white py-3 text-sm font-semibold transition-all touch-manipulation active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Submit Answer
+            {t("core.quiz.submit")}
           </button>
         )}
       </div>
