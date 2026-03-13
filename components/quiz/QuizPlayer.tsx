@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, CheckCircle2, GripVertical, XCircle } from "lucide-react";
 import type { QuizQuestion, StudentAnswer } from "./types";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -9,6 +9,8 @@ interface QuizPlayerProps {
   questionBank: QuizQuestion[];
   totalQuestions: number;
   onComplete: (answers: StudentAnswer[], highestDifficulty: number) => void;
+  feedbackMode?: "per_question" | "end";
+  timerSeconds?: number;
 }
 
 type MatchSelection = Record<string, string>;
@@ -54,19 +56,28 @@ function Progress({
   total,
   streak,
   isHi,
+  secondsLeft,
 }: {
   current: number;
   total: number;
   streak: number;
   isHi: boolean;
+  secondsLeft?: number;
 }) {
   const pct = Math.min(100, Math.round((current / total) * 100));
+  const mins = secondsLeft !== undefined ? Math.floor(secondsLeft / 60) : 0;
+  const secs = secondsLeft !== undefined ? secondsLeft % 60 : 0;
   return (
     <div className="bg-white rounded-2xl border border-neutral-100 p-4 shadow-sm space-y-3">
       <div className="flex items-center justify-between text-xs font-semibold">
         <span className="text-neutral-500">
           {isHi ? "प्रश्न" : "Question"} {current} {isHi ? "में से" : "of"} {total}
         </span>
+        {secondsLeft !== undefined && (
+          <span className="text-neutral-700">
+            {isHi ? "समय" : "Time"}: {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+          </span>
+        )}
       </div>
       <div className="h-2.5 rounded-full bg-neutral-100 overflow-hidden">
         <div className="h-full bg-neutral-900 transition-all" style={{ width: `${pct}%` }} />
@@ -80,7 +91,13 @@ function Progress({
   );
 }
 
-export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPlayerProps) {
+export function QuizPlayer({
+  questionBank,
+  totalQuestions,
+  onComplete,
+  feedbackMode = "per_question",
+  timerSeconds,
+}: QuizPlayerProps) {
   const { t, locale } = useLanguage();
   const isHi = locale === "hi";
   const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
@@ -101,6 +118,8 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
   const [matchSelection, setMatchSelection] = useState<MatchSelection>({});
   const [activeLeft, setActiveLeft] = useState<string | null>(null);
   const [orderSelection, setOrderSelection] = useState<number[]>([]);
+  const [secondsLeft, setSecondsLeft] = useState<number | undefined>(timerSeconds);
+  const completedRef = useRef(false);
 
   const rightOptions = useMemo(() => {
     if (!currentQuestion || currentQuestion.type !== "match") return [];
@@ -108,9 +127,38 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
   }, [currentQuestion]);
 
   useEffect(() => {
+    completedRef.current = false;
     const first = pickNextQuestion(questionBank, new Set(), 3);
     setCurrentQuestion(first);
   }, [questionBank]);
+
+  useEffect(() => {
+    setSecondsLeft(timerSeconds);
+  }, [timerSeconds]);
+
+  const finishQuiz = useCallback(
+    (finalAnswers: StudentAnswer[], level: number) => {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      onComplete(finalAnswers, level);
+    },
+    [onComplete]
+  );
+
+  useEffect(() => {
+    if (secondsLeft === undefined) return;
+    if (secondsLeft <= 0) {
+      finishQuiz(answers, highestDifficulty);
+      return;
+    }
+    const interval = window.setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev === undefined) return prev;
+        return Math.max(0, prev - 1);
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [answers, finishQuiz, highestDifficulty, secondsLeft]);
 
   useEffect(() => {
     setSingleChoice("");
@@ -261,23 +309,38 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
     setCurrentDifficulty(nextDifficulty);
     setHighestDifficulty((prev) => Math.max(prev, nextDifficulty));
 
-    setAnsweredState({
-      isCorrect,
-      message: isCorrect ? "Correct! Nice work." : "Incorrect. Let's try the next one.",
-    });
+    if (feedbackMode === "per_question") {
+      setAnsweredState({
+        isCorrect,
+        message: isCorrect ? "Correct! Nice work." : "Incorrect. Let's try the next one.",
+      });
+      return;
+    }
+
+    const finished = nextAnswers.length >= totalQuestions;
+    if (finished) {
+      finishQuiz(nextAnswers, Math.max(highestDifficulty, nextDifficulty));
+      return;
+    }
+    const candidate = pickNextQuestion(questionBank, newUsedIds, nextDifficulty);
+    if (!candidate) {
+      finishQuiz(nextAnswers, Math.max(highestDifficulty, nextDifficulty));
+      return;
+    }
+    setCurrentQuestion(candidate);
   };
 
   const nextQuestion = () => {
     if (!currentQuestion) return;
     const finished = answers.length >= totalQuestions;
     if (finished) {
-      onComplete(answers, highestDifficulty);
+      finishQuiz(answers, highestDifficulty);
       return;
     }
 
     const candidate = pickNextQuestion(questionBank, usedIds, currentDifficulty);
     if (!candidate) {
-      onComplete(answers, highestDifficulty);
+      finishQuiz(answers, highestDifficulty);
       return;
     }
     setCurrentQuestion(candidate);
@@ -300,6 +363,7 @@ export function QuizPlayer({ questionBank, totalQuestions, onComplete }: QuizPla
         total={totalQuestions}
         streak={streak}
         isHi={isHi}
+        secondsLeft={secondsLeft}
       />
 
       <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-4">

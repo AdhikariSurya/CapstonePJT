@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { PlannerForm, type PlannerFormData } from "./PlannerForm";
 import { PlannerOutput } from "./PlannerOutput";
+import { useProfile } from "@/components/ProfileProvider";
+import { PROFILE_META } from "@/lib/profiles";
 
 interface PlannerResult {
   plan: string;
@@ -27,6 +29,7 @@ const DEFAULT_FORM: PlannerFormData = {
 };
 
 export function PlannerModule() {
+  const { profile } = useProfile();
   const [formData, setFormData] = useState<PlannerFormData>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PlannerResult | null>(null);
@@ -81,6 +84,30 @@ export function PlannerModule() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleSaveToHistory = async () => {
+    if (!result) return;
+
+    const title = `Lesson Plan: ${result.metadata.topic}`;
+    const summary = `Grade ${result.metadata.grade} · ${result.metadata.subject} · ${result.metadata.duration} mins`;
+
+    const response = await fetch("/api/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teacherName: PROFILE_META[profile].name,
+        moduleType: "planner",
+        title,
+        summary,
+        payload: result,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to save history");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PlannerForm
@@ -105,6 +132,8 @@ export function PlannerModule() {
             metadata={result.metadata}
             onRegenerate={handleRegenerate}
             onNew={handleNew}
+            onSaveToHistory={handleSaveToHistory}
+            historyResetKey={result.metadata.generatedAt}
           />
         </div>
       )}

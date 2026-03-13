@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Copy, Check, RefreshCcw, PlusCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { SaveToHistoryAction } from "@/components/history/SaveToHistoryAction";
 
 const LANGUAGE_LABEL: Record<string, string> = {
   english: "English",
@@ -28,8 +29,11 @@ interface ContentOutputProps {
     description: string;
     generatedAt: string;
   };
-  onRegenerate: () => void;
-  onNew: () => void;
+  onRegenerate?: () => void;
+  onNew?: () => void;
+  onSaveToHistory?: () => Promise<void>;
+  historyResetKey?: string;
+  readOnly?: boolean;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -62,7 +66,15 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-export function ContentOutput({ content, metadata, onRegenerate, onNew }: ContentOutputProps) {
+export function ContentOutput({
+  content,
+  metadata,
+  onRegenerate,
+  onNew,
+  onSaveToHistory,
+  historyResetKey,
+  readOnly = false,
+}: ContentOutputProps) {
   const { t } = useLanguage();
   // Choose a font class for non-Latin scripts for better readability
   const fontClass =
@@ -106,23 +118,29 @@ export function ContentOutput({ content, metadata, onRegenerate, onNew }: Conten
         </div>
       </div>
 
-      {/* Bottom action buttons */}
-      <div className="flex gap-3 pt-2">
-        <button
-          onClick={onRegenerate}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-neutral-900 text-white rounded-2xl text-sm font-bold transition-all touch-manipulation active:scale-[0.98] shadow-md"
-        >
-          <RefreshCcw className="w-4 h-4" />
-          {t("common.regenerate")}
-        </button>
-        <button
-          onClick={onNew}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-white text-neutral-700 rounded-2xl text-sm font-bold border border-neutral-200 transition-all touch-manipulation active:scale-[0.98] hover:bg-neutral-50"
-        >
-          <PlusCircle className="w-4 h-4" />
-          {t("core.content.new")}
-        </button>
-      </div>
+      {!readOnly && onRegenerate && onNew && onSaveToHistory && historyResetKey && (
+        <>
+          {/* Bottom action buttons */}
+          <SaveToHistoryAction onSave={onSaveToHistory} resetKey={historyResetKey} />
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={onRegenerate}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-neutral-900 text-white rounded-2xl text-sm font-bold transition-all touch-manipulation active:scale-[0.98] shadow-md"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              {t("common.regenerate")}
+            </button>
+            <button
+              onClick={onNew}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-white text-neutral-700 rounded-2xl text-sm font-bold border border-neutral-200 transition-all touch-manipulation active:scale-[0.98] hover:bg-neutral-50"
+            >
+              <PlusCircle className="w-4 h-4" />
+              {t("core.content.new")}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

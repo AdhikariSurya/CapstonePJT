@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { APP_LOCALE_STORAGE_KEY, APP_MESSAGES, type AppLocale } from "@/lib/i18n";
 
 interface LanguageContextValue {
@@ -21,14 +21,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const setLocale = (nextLocale: AppLocale) => {
+  const setLocale = useCallback((nextLocale: AppLocale) => {
     setLocaleState(nextLocale);
     window.localStorage.setItem(APP_LOCALE_STORAGE_KEY, nextLocale);
-  };
+  }, []);
 
-  const t = (key: string) => APP_MESSAGES[locale][key] ?? APP_MESSAGES.en[key] ?? key;
+  const t = useCallback(
+    (key: string) => APP_MESSAGES[locale][key] ?? APP_MESSAGES.en[key] ?? key,
+    [locale]
+  );
 
-  const value = useMemo(() => ({ locale, setLocale, t }), [locale]);
+  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }

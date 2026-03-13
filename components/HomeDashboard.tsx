@@ -22,6 +22,12 @@ export function HomeDashboard() {
             </h2>
             <div className="space-y-3">
               <ModuleCard
+                href="/games"
+                icon={<Gamepad2 className="w-6 h-6 text-violet-600" />}
+                title={t("home.module.games.title")}
+                description={t("home.module.games.description")}
+              />
+              <ModuleCard
                 href="/audio"
                 icon={<Mic className="w-6 h-6 text-rose-600" />}
                 title={t("home.module.audio.title")}

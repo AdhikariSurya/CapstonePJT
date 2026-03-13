@@ -10,6 +10,8 @@ interface QuizResultsProps {
   highestDifficulty: number;
   onTryAgain: () => void;
   onNewQuiz: () => void;
+  showScoreSummary?: boolean;
+  hideActions?: boolean;
 }
 
 function toDisplayAnswer(value: StudentAnswer["studentAnswer"]): string {
@@ -28,6 +30,8 @@ export function QuizResults({
   highestDifficulty,
   onTryAgain,
   onNewQuiz,
+  showScoreSummary = true,
+  hideActions = false,
 }: QuizResultsProps) {
   const { t, locale } = useLanguage();
   const isHi = locale === "hi";
@@ -47,32 +51,38 @@ export function QuizResults({
           <Trophy className="w-5 h-5 text-amber-500" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">{isHi ? "स्कोर" : "Score"}</p>
-            <p className="text-xl font-bold text-neutral-900 mt-1">
-              {correctCount}/{answers.length}
-            </p>
+        {showScoreSummary ? (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
+              <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">{isHi ? "स्कोर" : "Score"}</p>
+              <p className="text-xl font-bold text-neutral-900 mt-1">
+                {correctCount}/{answers.length}
+              </p>
+            </div>
+            <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
+              <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">{isHi ? "सटीकता" : "Accuracy"}</p>
+              <p className="text-xl font-bold text-neutral-900 mt-1">{accuracy}%</p>
+            </div>
+            <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
+              <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">
+                {isHi ? "उच्चतम स्तर" : "Highest Level"}
+              </p>
+              <p className="text-xl font-bold text-neutral-900 mt-1">{highestDifficulty}</p>
+            </div>
+            <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
+              <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">
+                {isHi ? "अनुकूली स्कोर" : "Adaptive Score"}
+              </p>
+              <p className="text-xl font-bold text-neutral-900 mt-1">
+                {adaptiveScore}/{maxAdaptive}
+              </p>
+            </div>
           </div>
-          <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">{isHi ? "सटीकता" : "Accuracy"}</p>
-            <p className="text-xl font-bold text-neutral-900 mt-1">{accuracy}%</p>
-          </div>
-          <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">
-              {isHi ? "उच्चतम स्तर" : "Highest Level"}
-            </p>
-            <p className="text-xl font-bold text-neutral-900 mt-1">{highestDifficulty}</p>
-          </div>
-          <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-3">
-            <p className="text-xs uppercase tracking-wider text-neutral-400 font-bold">
-              {isHi ? "अनुकूली स्कोर" : "Adaptive Score"}
-            </p>
-            <p className="text-xl font-bold text-neutral-900 mt-1">
-              {adaptiveScore}/{maxAdaptive}
-            </p>
-          </div>
-        </div>
+        ) : (
+          <p className="text-sm text-neutral-600">
+            {isHi ? "क्विज़ पूरा हो गया।" : "Quiz completed. Your teacher will review your score."}
+          </p>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm space-y-3">
@@ -103,22 +113,24 @@ export function QuizResults({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <button
-          onClick={onTryAgain}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-neutral-200 bg-white text-neutral-700 text-sm font-semibold hover:bg-neutral-50 transition-colors"
-        >
-          <RotateCcw className="w-4 h-4" />
-          {t("core.quiz.tryAgain")}
-        </button>
-        <button
-          onClick={onNewQuiz}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-neutral-900 text-white text-sm font-semibold transition-all touch-manipulation active:scale-[0.98]"
-        >
-          <Sparkles className="w-4 h-4" />
-          {t("core.quiz.new")}
-        </button>
-      </div>
+      {!hideActions && (
+        <div className="space-y-2">
+          <button
+            onClick={onTryAgain}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-neutral-200 bg-white text-neutral-700 text-sm font-semibold hover:bg-neutral-50 transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            {t("core.quiz.tryAgain")}
+          </button>
+          <button
+            onClick={onNewQuiz}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-neutral-900 text-white text-sm font-semibold transition-all touch-manipulation active:scale-[0.98]"
+          >
+            <Sparkles className="w-4 h-4" />
+            {t("core.quiz.new")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

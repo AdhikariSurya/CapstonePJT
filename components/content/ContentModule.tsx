@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { ContentForm, type ContentFormData } from "./ContentForm";
 import { ContentOutput } from "./ContentOutput";
+import { useProfile } from "@/components/ProfileProvider";
+import { PROFILE_META } from "@/lib/profiles";
 
 interface ContentResult {
   content: string;
@@ -22,6 +24,7 @@ const DEFAULT_FORM: ContentFormData = {
 };
 
 export function ContentModule() {
+  const { profile } = useProfile();
   const [formData, setFormData] = useState<ContentFormData>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ContentResult | null>(null);
@@ -72,6 +75,32 @@ export function ContentModule() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleSaveToHistory = async () => {
+    if (!result) return;
+
+    const contentTypeLabel =
+      result.metadata.contentType.charAt(0).toUpperCase() + result.metadata.contentType.slice(1);
+    const title = `${contentTypeLabel}: ${result.metadata.description}`;
+    const summary = `${result.metadata.language} · ${result.metadata.contentType}`;
+
+    const response = await fetch("/api/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teacherName: PROFILE_META[profile].name,
+        moduleType: "content",
+        title,
+        summary,
+        payload: result,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to save history");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <ContentForm
@@ -96,6 +125,8 @@ export function ContentModule() {
             metadata={result.metadata}
             onRegenerate={handleRegenerate}
             onNew={handleNew}
+            onSaveToHistory={handleSaveToHistory}
+            historyResetKey={result.metadata.generatedAt}
           />
         </div>
       )}

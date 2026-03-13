@@ -1,0 +1,164 @@
+:root {
+    --font-sans: 'Inter', sans-serif;
+    --font-serif: 'Lora', serif;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: #f8f9fa; 
+    color: #212529;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-serif);
+}
+
+.font-serif {
+    font-family: var(--font-serif);
+}
+
+.option-btn {
+    transition: all 0.2s ease;
+    border-radius: 8px; 
+    border: 2px solid #dee2e6;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.option-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.08);
+    border-color: #ced4da;
+}
+
+.option-btn h3, .option-btn div {
+    transition: color 0.2s ease;
+}
+
+.selected {
+    background-color: #212529; 
+    color: white;
+    border-color: #212529; 
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 48px;
+}
+
+.progress-segment {
+    flex-grow: 1;
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.progress-segment.active {
+    background-color: #212529;
+}
+
+/* Topic Display */
+.topic-display {
+    text-align: center;
+    margin: 0 0 24px 0;
+    padding: 16px;
+    background-color: #f1f3f5;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Toast Notifications */
+.toast {
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
+    opacity: 0;
+    transform: translateX(100%);
+    animation: slideIn 0.5s forwards;
+}
+
+.toast.toast-error {
+    background-color: #e03131;
+    color: white;
+}
+
+.toast.toast-warning {
+    background-color: #f08c00;
+    color: white;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Selection Counter */
+.selection-counter {
+    text-align: center;
+    margin-bottom: 16px;
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Full-card feedback states */
+.card-correct, .card-correct * {
+    background-color: #2f9e44 !important;
+    color: #ffffff !important;
+    border-color: #2b8a3e !important;
+}
+.card-incorrect, .card-incorrect * {
+    background-color: #e03131 !important;
+    color: #ffffff !important;
+    border-color: #c92a2a !important;
+}
+
+/* Format Builder */
+.answer-area {
+    min-height: 100px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.component-tag {
+    padding: 8px 12px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.component-tag.correct {
+    background-color: #2f9e44;
+    color: white;
+}
+
+.component-tag.incorrect {
+    background-color: #e03131;
+    color: white;
+}
+
+.option-btn.disabled {
+    background-color: #f1f3f5;
+    color: #adb5bd;
+    cursor: not-allowed;
+    border-color: #e9ecef;
+}
+
+.option-btn.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #e9ecef;
+}

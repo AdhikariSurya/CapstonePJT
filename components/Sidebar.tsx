@@ -28,17 +28,18 @@ const PLACEHOLDER_FOLDERS = [
   { id: "3", name: "Math Games" },
 ];
 
-const PLACEHOLDER_HISTORY = [
-  { id: "1", name: "Worksheet: Addition" },
-  { id: "2", name: "Lesson Plan: Day 4" },
-  { id: "3", name: "Audio: Phonics" },
-];
+interface SidebarHistoryItem {
+  id: string;
+  title: string;
+}
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState<SidebarHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [profileSwitchOpen, setProfileSwitchOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useLanguage();
@@ -64,6 +65,37 @@ export function Sidebar() {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!historyOpen) return;
+
+    const loadHistoryItems = async () => {
+      setHistoryLoading(true);
+      try {
+        const teacherName = PROFILE_META[profile].name;
+        const response = await fetch(
+          `/api/history?teacherName=${encodeURIComponent(teacherName)}&limit=5`
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load history");
+        }
+        const entries = Array.isArray(data.entries) ? data.entries : [];
+        setHistoryItems(
+          entries.map((entry: { id: string; title: string }) => ({
+            id: entry.id,
+            title: entry.title,
+          }))
+        );
+      } catch {
+        setHistoryItems([]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    void loadHistoryItems();
+  }, [historyOpen, profile]);
 
   return (
     <>
@@ -213,16 +245,23 @@ export function Sidebar() {
                   {/* History dropdown */}
                   {historyOpen && (
                     <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-neutral-100 pl-3">
-                      {PLACEHOLDER_HISTORY.map((item) => (
-                        <Link
-                          key={item.id}
-                          href={`/history/${item.id}`}
-                          className="flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
-                        >
-                          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="truncate">{item.name}</span>
-                        </Link>
-                      ))}
+                      {historyLoading && (
+                        <p className="px-2 py-1.5 text-[11px] text-neutral-400">Loading history...</p>
+                      )}
+                      {!historyLoading && historyItems.length === 0 && (
+                        <p className="px-2 py-1.5 text-[11px] text-neutral-400">No saved items</p>
+                      )}
+                      {!historyLoading &&
+                        historyItems.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={`/history/${item.id}`}
+                            className="flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                          >
+                            <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="truncate">{item.title}</span>
+                          </Link>
+                        ))}
                     </div>
                   )}
                 </div>

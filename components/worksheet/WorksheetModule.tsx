@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { WorksheetForm, type WorksheetFormData } from "./WorksheetForm";
 import { WorksheetOutput } from "./WorksheetOutput";
+import { useProfile } from "@/components/ProfileProvider";
+import { PROFILE_META } from "@/lib/profiles";
 
 interface WorksheetResult {
   worksheets: Record<number, string>;
@@ -29,6 +31,7 @@ const DEFAULT_FORM: WorksheetFormData = {
 };
 
 export function WorksheetModule() {
+  const { profile } = useProfile();
   const [formData, setFormData] = useState<WorksheetFormData>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WorksheetResult | null>(null);
@@ -79,6 +82,31 @@ export function WorksheetModule() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleSaveToHistory = async () => {
+    if (!result) return;
+
+    const grades = [...result.metadata.grades].sort((a, b) => a - b).join(", ");
+    const title = `Worksheet: ${result.metadata.topic}`;
+    const summary = `Grades ${grades} · ${result.metadata.subject}`;
+
+    const response = await fetch("/api/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teacherName: PROFILE_META[profile].name,
+        moduleType: "worksheet",
+        title,
+        summary,
+        payload: result,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to save history");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <WorksheetForm
@@ -103,6 +131,8 @@ export function WorksheetModule() {
             metadata={result.metadata}
             onRegenerate={handleRegenerate}
             onNew={handleNew}
+            onSaveToHistory={handleSaveToHistory}
+            historyResetKey={result.metadata.generatedAt}
           />
         </div>
       )}

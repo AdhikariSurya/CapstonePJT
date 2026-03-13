@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write Right - A Writing Skills Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body class="flex flex-col min-h-screen">
+    <div id="toast-container" class="fixed top-5 right-5 z-50"></div>
+    
+    <header class="w-full max-w-4xl mx-auto px-4 py-8">
+        <div>
+            <h1 class="font-serif text-3xl font-bold text-gray-800">WRITE RIGHT</h1>
+            <p class="text-sm text-gray-500">English Writing Skills Game.</p>
+        </div>
+    </header>
+
+    <main id="game-container" class="w-full max-w-4xl mx-auto px-4 flex-grow">
+        <!-- All game steps will be dynamically inserted here -->
+    </main>
+
+    <script src="./content.js"></script>
+    <script src="./script.js"></script>
+</body>
+</html>
