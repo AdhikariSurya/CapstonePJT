@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { ArrowLeft, ExternalLink, Gamepad2, GraduationCap } from "lucide-react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -9,7 +10,7 @@ import { QuizModule } from "@/components/quiz/QuizModule";
 import { TeacherQuizHub } from "@/components/quiz/TeacherQuizHub";
 import { useProfile } from "@/components/ProfileProvider";
 
-export default function GamesPage() {
+function GamesPageContent() {
   const { t } = useLanguage();
   const { profile } = useProfile();
   const searchParams = useSearchParams();
@@ -96,5 +97,13 @@ export default function GamesPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function GamesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <GamesPageContent />
+    </Suspense>
   );
 }
